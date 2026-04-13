@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import logo from "../../assets/logo.svg";
+import { authService } from "../lib/auth-service";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -15,17 +16,8 @@ export function Login() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Credenciais inválidas");
-      }
-      const { token } = await res.json();
-      localStorage.setItem("token", token);
+      const { data } = await authService.login({ email, password });
+      localStorage.setItem("token", data.token);
       window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err.message);
@@ -52,7 +44,7 @@ export function Login() {
 
         <div className="rounded-2xl border border-white/[0.06] bg-[#0d130f]/90 backdrop-blur-xl px-8 py-9 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.7)]">
           <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 delay-100 mb-8 flex justify-center">
-            <img src={logo} alt="Orderly" className="h-7 w-auto" />
+            <img src={logo} alt="Orderly" className="h-12 w-auto" />
           </div>
 
           <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 delay-150 mb-7">
