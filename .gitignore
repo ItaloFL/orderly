@@ -7,6 +7,7 @@ services/**/.env
 frontend/.env
 .env
 
+
 services/**/dist/
 frontend/dist/
 

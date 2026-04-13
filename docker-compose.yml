@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - orderly-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    networks:
+      - orderly-network
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./services/auth-service/.env
+    depends_on:
+      - postgres
+    networks:
+      - orderly-network
+    volumes:
+      - ./services/auth-service/src:/app/src
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+
+  order-service:
+    build:
+      context: ./services/order-service
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./services/order-service/.env
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - orderly-network
+    volumes:
+      - ./services/order-service/src:/app/src
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+
+networks:
+  orderly-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
