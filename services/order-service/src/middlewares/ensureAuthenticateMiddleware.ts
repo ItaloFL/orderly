@@ -18,7 +18,7 @@ export async function ensureAuthenticateMiddleware(
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       userId: string;
     };
-    request.userId = decoded.userId; // injeta o userId na requisição
+    request.userId = decoded.userId; 
     next();
   } catch {
     return response.status(401).json({ message: "Token inválido" });
