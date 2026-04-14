@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from 'jsonwebtoken'
 
-export async function ensureAuthenticateMiddlewate(
+export async function ensureAuthenticateMiddleware(
   request: Request,
   response: Response,
   next: NextFunction,
