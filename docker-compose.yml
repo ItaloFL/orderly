@@ -12,6 +12,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - orderly-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -23,6 +28,11 @@ services:
       RABBITMQ_DEFAULT_PASS: admin
     networks:
       - orderly-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   auth-service:
     build:
@@ -32,7 +42,8 @@ services:
     env_file:
       - ./services/auth-service/.env
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - orderly-network
     volumes:
@@ -47,8 +58,10 @@ services:
     env_file:
       - ./services/order-service/.env
     depends_on:
-      - postgres
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - orderly-network
     volumes:
