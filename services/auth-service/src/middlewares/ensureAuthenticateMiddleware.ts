@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from 'jsonwebtoken'
 
-export async function ensureAuthenticateMiddlewate(
+export async function ensureAuthenticateMiddleware(
   request: Request,
   response: Response,
   next: NextFunction,
@@ -18,7 +18,7 @@ export async function ensureAuthenticateMiddlewate(
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       userId: string;
     };
-    request.userId = decoded.userId; // injeta o userId na requisição
+    request.userId = decoded.userId; 
     next();
   } catch {
     return response.status(401).json({ message: "Token inválido" });
