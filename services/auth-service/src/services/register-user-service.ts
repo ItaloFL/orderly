@@ -1,5 +1,6 @@
 import { hash } from "bcryptjs";
 import { prisma } from "../database/prisma";
+import { AppError } from "../errors/AppError/AppError";
 
 interface RegisterUserSchema {
   name: string;
@@ -15,7 +16,7 @@ export class RegisterUserService {
       },
     });
 
-    if (verifyIfUserExist) throw new Error("Esse e-mail já está em uso!");
+    if (verifyIfUserExist) throw new AppError("Esse e-mail já está em uso!");
 
     const hashPassword = await hash(password, 8);
 
@@ -24,6 +25,7 @@ export class RegisterUserService {
         name,
         email,
         password: hashPassword,
+        
       },
     });
   }

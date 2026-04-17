@@ -1,6 +1,7 @@
 import { compare } from "bcryptjs";
 import { prisma } from "../database/prisma";
 import jwt from "jsonwebtoken";
+import { AppError } from "../errors/AppError/AppError";
 
 interface AuthUserSchema {
   email: string;
@@ -15,16 +16,16 @@ export class AuthUserService {
       },
     });
 
-    if (!userExists) throw new Error("Usuário ou senha incorretos");
+    if (!userExists) throw new AppError("Usuário ou senha incorretos");
 
     const passwordMatch = await compare(password, userExists.password);
 
-    if (!passwordMatch) throw new Error("Usuário ou senha incorretos");
+    if (!passwordMatch) throw new AppError("Usuário ou senha incorretos");
 
     const token = jwt.sign({ userId: userExists.id }, process.env.JWT_SECRET!, {
       expiresIn: "7d",
     });
 
-    return { token }
+    return { token };
   }
 }

@@ -1,5 +1,6 @@
 import { prisma } from "../database/prisma";
 import bcrypt from "bcryptjs";
+import { AppError } from "../errors/AppError/AppError";
 
 interface ResetPasswordServiceRequest {
   token: string;
@@ -13,11 +14,11 @@ export class ResetPasswordService {
     });
 
     if (!user || !user.passwordResetExpires) {
-      throw new Error("Token inválido");
+      throw new AppError("Token inválido");
     }
 
     if (user.passwordResetExpires < new Date()) {
-      throw new Error("Token expirado");
+      throw new AppError("Token expirado");
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
