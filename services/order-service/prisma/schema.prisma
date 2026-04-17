@@ -11,24 +11,27 @@ datasource db {
 model Order {
   id        String      @id @default(uuid())
   userId    String
-  status    OrderStatus @default(PENDING)
-  total     Float
   items     OrderItem[]
+  status    OrderStatus
+  total     Float
   createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
 }
 
 model OrderItem {
-  id        String @id @default(uuid())
-  orderId   String
-  order     Order  @relation(fields: [orderId], references: [id])
-  productId String
-  quantity  Int
-  price     Float
+  id      String @id @default(uuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  productId   String
+  productName String
+  price       Float
+  quantity    Int
 }
 
 enum OrderStatus {
   PENDING
+  WAITING_PAYMENT
+  PAID
   CONFIRMED
   CANCELLED
 }

@@ -1,4 +1,5 @@
 import { prisma } from "../database/prisma";
+import { AppError } from "../errors/AppError/AppError";
 
 type OrderStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
 
@@ -15,7 +16,7 @@ export class UpdateStatusOrderService {
       },
     });
 
-    if (!order) throw new Error("Pedido nao encontrado");
+    if (!order) throw new AppError("Pedido nao encontrado");
 
     const updatedOrder = await prisma.order.update({
       where: {
