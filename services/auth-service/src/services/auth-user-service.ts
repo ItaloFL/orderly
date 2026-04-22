@@ -22,9 +22,13 @@ export class AuthUserService {
 
     if (!passwordMatch) throw new AppError("Usuário ou senha incorretos");
 
-    const token = jwt.sign({ userId: userExists.id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { userId: userExists.id, role: userExists.role },
+      process.env.JWT_SECRET!,
+      {
+        expiresIn: "7d",
+      },
+    );
 
     return { token };
   }
