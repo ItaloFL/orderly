@@ -1,7 +1,22 @@
 import { api } from "./axios";
 
 export const orderService = {
-  list: () => api.get("/api/orders"),
+  create: (data: {
+    items: {
+      productId: string;
+      productName: string;
+      quantity: number;
+      price: number;
+    }[];
+  }) => api.post<{ id: string; userId: string }>("/api/orders", data),
+
+  createCheckout: (orderId: string, data: { userId: string; total: number }) =>
+    api.post<{ checkoutUrl: string; sessionId: string }>(
+      `/api/orders/${orderId}/checkout`,
+      data,
+    ),
+
+  list: (params?: { page?: number }) => api.get("/api/orders", { params }),
+
   getOne: (id: string) => api.get(`/api/orders/${id}`),
-  create: (data: unknown) => api.post("/api/orders", data),
 };

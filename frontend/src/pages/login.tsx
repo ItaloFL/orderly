@@ -3,27 +3,43 @@ import { Link } from "react-router-dom";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import logo from "../../assets/logo.svg";
 import { authService } from "../lib/auth-service";
+import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
+
+const loginSchema = z.object({
+  email: z.email("E-mail inválido").trim(),
+  password: z.string().min(1, "Senha obrigatória").trim(),
+});
+
+type LoginFormType = z.infer<typeof loginSchema>;
 
 export function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const { data } = await authService.login({ email, password });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormType>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const { mutate, isPending, error } = useMutation({
+    mutationFn: authService.login,
+    onSuccess: ({ data }) => {
       localStorage.setItem("token", data.token);
-      window.location.href = "/dashboard";
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+      navigate("/products");
+    },
+  });
+
+  console.log(error);
+
+  function onSubmit(data: LoginFormType) {
+    mutate(data);
   }
 
   return (
@@ -58,11 +74,13 @@ export function Login() {
 
           {error && (
             <div className="animate-in fade-in slide-in-from-top-2 duration-300 mb-4 rounded-lg border border-red-500/20 bg-red-500/08 px-3.5 py-2.5">
-              <p className="text-sm text-red-400">{error}</p>
+              <p className="text-sm text-red-400">
+                {(error as any).response?.data?.message || error.message}
+              </p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-3.5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 delay-200 space-y-1.5">
               <label
                 htmlFor="email"
@@ -73,12 +91,15 @@ export function Login() {
               <input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                required
+                {...register("email")}
                 className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-sm text-white placeholder:text-white/20 transition-all duration-200 focus:border-emerald-500/40 focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-emerald-500/10"
               />
+              {errors.email && (
+                <p className="text-[11px] text-red-400/80">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 delay-[250ms] space-y-1.5">
@@ -100,10 +121,8 @@ export function Login() {
                 <input
                   id="password"
                   type={show ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  required
+                  {...register("password")}
                   className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 pr-10 text-sm text-white placeholder:text-white/20 transition-all duration-200 focus:border-emerald-500/40 focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-emerald-500/10"
                 />
                 <button
@@ -115,15 +134,20 @@ export function Login() {
                   {show ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-[11px] text-red-400/80">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 delay-300 pt-1">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isPending}
                 className="group flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-[#090d0b] transition-all duration-200 hover:bg-emerald-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.25)] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? (
+                {isPending ? (
                   <Loader2 size={15} className="animate-spin" />
                 ) : (
                   <>

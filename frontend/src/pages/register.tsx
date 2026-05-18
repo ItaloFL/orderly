@@ -3,36 +3,54 @@ import { Link } from "react-router-dom";
 import { Eye, EyeOff, ArrowRight, Loader2, User } from "lucide-react";
 import logo from "../../assets/logo.svg";
 import { authService } from "../lib/auth-service";
+import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const registerUserSchema = z
+  .object({
+    name: z.string().min(3, "Um nome válido é obrigatório").trim(),
+    email: z.email("E-mail inválido").trim(),
+    password: z
+      .string()
+      .min(8, "A senha deve ter no mínimo 8 caracteres")
+      .trim(),
+    confirmPassword: z.string().trim(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem",
+    path: ["confirmPassword"],
+  });
+
+type RegisterUserFormType = z.infer<typeof registerUserSchema>;
 
 export function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterUserFormType>({
+    resolver: zodResolver(registerUserSchema),
+  });
 
-    if (password !== confirmPassword) {
-      setError("As senhas não coincidem.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data } = await authService.register({ name, email, password });
+  const { mutate, isPending, error } = useMutation({
+    mutationFn: authService.register,
+    onSuccess: ({ data }) => {
       localStorage.setItem("token", data.token);
       window.location.href = "/dashboard";
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    },
+  });
+
+  function onSubmit(data: RegisterUserFormType) {
+    mutate({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+    });
   }
 
   return (
@@ -65,13 +83,16 @@ export function Register() {
             </p>
           </div>
 
+          {/* Tratamento de erro idêntico ao do Login */}
           {error && (
             <div className="animate-in fade-in slide-in-from-top-2 duration-300 mb-4 rounded-lg border border-red-500/20 bg-red-500/08 px-3.5 py-2.5">
-              <p className="text-sm text-red-400">{error}</p>
+              <p className="text-sm text-red-400">
+                {(error as any).response?.data?.message || error.message}
+              </p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-3.5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
             {/* Nome */}
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 delay-200 space-y-1.5">
               <label
@@ -84,17 +105,24 @@ export function Register() {
                 <input
                   id="name"
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
                   placeholder="Seu nome"
-                  required
-                  className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 pr-10 text-sm text-white placeholder:text-white/20 transition-all duration-200 focus:border-emerald-500/40 focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-emerald-500/10"
+                  {...register("name")}
+                  className={`w-full rounded-lg border bg-white/[0.04] px-3.5 py-2.5 pr-10 text-sm text-white placeholder:text-white/20 transition-all duration-200 focus:outline-none focus:ring-2 ${
+                    errors.name
+                      ? "border-red-500/40 focus:border-red-500/40 focus:ring-red-500/10"
+                      : "border-white/[0.08] focus:border-emerald-500/40 focus:bg-white/[0.06] focus:ring-emerald-500/10"
+                  }`}
                 />
                 <User
                   size={14}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/20"
                 />
               </div>
+              {errors.name && (
+                <p className="text-[11px] text-red-400/80">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
 
             {/* Email */}
@@ -108,12 +136,19 @@ export function Register() {
               <input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                required
-                className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-sm text-white placeholder:text-white/20 transition-all duration-200 focus:border-emerald-500/40 focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-emerald-500/10"
+                {...register("email")}
+                className={`w-full rounded-lg border bg-white/[0.04] px-3.5 py-2.5 text-sm text-white placeholder:text-white/20 transition-all duration-200 focus:outline-none focus:ring-2 ${
+                  errors.email
+                    ? "border-red-500/40 focus:border-red-500/40 focus:ring-red-500/10"
+                    : "border-white/[0.08] focus:border-emerald-500/40 focus:bg-white/[0.06] focus:ring-emerald-500/10"
+                }`}
               />
+              {errors.email && (
+                <p className="text-[11px] text-red-400/80">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Senha */}
@@ -128,12 +163,13 @@ export function Register() {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  required
-                  minLength={8}
-                  className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 pr-10 text-sm text-white placeholder:text-white/20 transition-all duration-200 focus:border-emerald-500/40 focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-emerald-500/10"
+                  {...register("password")}
+                  className={`w-full rounded-lg border bg-white/[0.04] px-3.5 py-2.5 pr-10 text-sm text-white placeholder:text-white/20 transition-all duration-200 focus:outline-none focus:ring-2 ${
+                    errors.password
+                      ? "border-red-500/40 focus:border-red-500/40 focus:ring-red-500/10"
+                      : "border-white/[0.08] focus:border-emerald-500/40 focus:bg-white/[0.06] focus:ring-emerald-500/10"
+                  }`}
                 />
                 <button
                   type="button"
@@ -144,6 +180,11 @@ export function Register() {
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-[11px] text-red-400/80">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             {/* Confirmar senha */}
@@ -158,12 +199,10 @@ export function Register() {
                 <input
                   id="confirmPassword"
                   type={showConfirm ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  required
+                  {...register("confirmPassword")}
                   className={`w-full rounded-lg border bg-white/[0.04] px-3.5 py-2.5 pr-10 text-sm text-white placeholder:text-white/20 transition-all duration-200 focus:outline-none focus:ring-2 ${
-                    confirmPassword && confirmPassword !== password
+                    errors.confirmPassword
                       ? "border-red-500/40 focus:border-red-500/40 focus:ring-red-500/10"
                       : "border-white/[0.08] focus:border-emerald-500/40 focus:bg-white/[0.06] focus:ring-emerald-500/10"
                   }`}
@@ -177,9 +216,9 @@ export function Register() {
                   {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
-              {confirmPassword && confirmPassword !== password && (
+              {errors.confirmPassword && (
                 <p className="text-[11px] text-red-400/80">
-                  As senhas não coincidem.
+                  {errors.confirmPassword.message}
                 </p>
               )}
             </div>
@@ -188,10 +227,10 @@ export function Register() {
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 delay-[400ms] pt-1">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isPending}
                 className="group flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-[#090d0b] transition-all duration-200 hover:bg-emerald-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.25)] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? (
+                {isPending ? (
                   <Loader2 size={15} className="animate-spin" />
                 ) : (
                   <>
