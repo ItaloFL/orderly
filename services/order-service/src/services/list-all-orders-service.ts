@@ -1,9 +1,30 @@
 import { prisma } from "../database/prisma";
 
-export class ListAllOrdersService {
-  async execute() {
-    const orders = await prisma.order.findMany();
+const PER_PAGE = 8;
 
-    return orders;
+interface ListAllOrdersRequest {
+  page: number;
+}
+
+export class ListAllOrdersService {
+  async execute({ page }: ListAllOrdersRequest) {
+    const [orders, total] = await prisma.$transaction([
+      prisma.order.findMany({
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * PER_PAGE,
+        take: PER_PAGE,
+      }),
+      prisma.order.count(),
+    ]);
+
+    return {
+      data: orders,
+      meta: {
+        total,
+        page,
+        perPage: PER_PAGE,
+        totalPages: Math.ceil(total / PER_PAGE),
+      },
+    };
   }
 }

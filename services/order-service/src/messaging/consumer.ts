@@ -8,20 +8,15 @@ export async function startOrderConsumer() {
   await channel.bindQueue(
     "order-update-queue",
     "orderly.events",
-    "payment.approved",
-  );
-  await channel.bindQueue(
-    "order-update-queue",
-    "orderly.events",
-    "payment.failed",
+    "payment.processed",
   );
 
   channel.consume("order-update-queue", async (msg) => {
     if (!msg) return;
 
-    const { event, data } = JSON.parse(msg.content.toString());
+    const { data } = JSON.parse(msg.content.toString());
 
-    const status = event === "payment.approved" ? "CONFIRMED" : "CANCELLED";
+    const status = data.success ? "CONFIRMED" : "CANCELLED";
 
     await prisma.order.update({
       where: { id: data.orderId },

@@ -3,6 +3,7 @@ import { publishEvent } from "../messaging/publisher";
 
 interface OrderItem {
   productId: string;
+  productName: string;
   quantity: number;
   price: number;
 }
@@ -27,6 +28,7 @@ export class CreateOrderService {
         items: {
           create: items.map((item) => ({
             productId: item.productId,
+            productName: item.productName,
             quantity: item.quantity,
             price: item.price,
           })),

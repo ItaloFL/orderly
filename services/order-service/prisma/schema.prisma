@@ -15,6 +15,7 @@ model Order {
   status    OrderStatus
   total     Float
   createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
 
 model OrderItem {
@@ -26,6 +27,9 @@ model OrderItem {
   productName String
   price       Float
   quantity    Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum OrderStatus {

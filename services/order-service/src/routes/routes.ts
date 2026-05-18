@@ -4,6 +4,9 @@ import { CreateOrderController } from "../controllers/create-order-controller";
 import { GetOrderByIdController } from "../controllers/get-order-by-id-controller";
 import { ensureAuthenticateMiddleware } from "../middlewares/ensureAuthenticateMiddleware";
 import { UpdateStatusOrderController } from "../controllers/update-status-order-controller";
+import { CreateCheckoutController } from "../controllers/create-checkout-controller";
+
+const createCheckoutController = new CreateCheckoutController();
 
 const listAllOrdersController = new ListAllOrdersController();
 const createOrderController = new CreateOrderController();
@@ -35,3 +38,5 @@ routes.patch(
   ensureAuthenticateMiddleware,
   updateStatusOrderController.handle,
 );
+
+routes.post("/orders/:id/checkout", createCheckoutController.handle);

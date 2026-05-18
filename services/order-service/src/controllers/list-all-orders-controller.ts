@@ -3,10 +3,11 @@ import { ListAllOrdersService } from "../services/list-all-orders-service";
 
 export class ListAllOrdersController {
   async handle(request: Request, response: Response) {
+    const { page = 1 } = request.query;
+
     const listAllOrdersService = new ListAllOrdersService();
+    const result = await listAllOrdersService.execute({ page: Number(page) });
 
-    const orders = await listAllOrdersService.execute();
-
-    return response.json(orders);
+    return response.json(result);
   }
 }

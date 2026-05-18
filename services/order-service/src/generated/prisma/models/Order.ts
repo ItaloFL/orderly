@@ -279,7 +279,7 @@ export type OrderScalarWhereWithAggregatesInput = {
 export type OrderCreateInput = {
   id?: string
   userId: string
-  status?: $Enums.OrderStatus
+  status: $Enums.OrderStatus
   total: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -289,7 +289,7 @@ export type OrderCreateInput = {
 export type OrderUncheckedCreateInput = {
   id?: string
   userId: string
-  status?: $Enums.OrderStatus
+  status: $Enums.OrderStatus
   total: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -319,7 +319,7 @@ export type OrderUncheckedUpdateInput = {
 export type OrderCreateManyInput = {
   id?: string
   userId: string
-  status?: $Enums.OrderStatus
+  status: $Enums.OrderStatus
   total: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -420,7 +420,7 @@ export type OrderUpdateOneRequiredWithoutItemsNestedInput = {
 export type OrderCreateWithoutItemsInput = {
   id?: string
   userId: string
-  status?: $Enums.OrderStatus
+  status: $Enums.OrderStatus
   total: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -429,7 +429,7 @@ export type OrderCreateWithoutItemsInput = {
 export type OrderUncheckedCreateWithoutItemsInput = {
   id?: string
   userId: string
-  status?: $Enums.OrderStatus
+  status: $Enums.OrderStatus
   total: number
   createdAt?: Date | string
   updatedAt?: Date | string

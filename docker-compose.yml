@@ -44,10 +44,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - orderly-network
     volumes:
       - ./services/auth-service/src:/app/src
+      - auth_nm:/app/node_modules
     command: sh -c "npx prisma migrate deploy && npm run dev"
 
   order-service:
@@ -66,6 +69,60 @@ services:
       - orderly-network
     volumes:
       - ./services/order-service/src:/app/src
+      - order_nm:/app/node_modules
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+
+  payment-service:
+    build:
+      context: ./services/payment-service
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./services/payment-service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - orderly-network
+    volumes:
+      - ./services/payment-service/src:/app/src
+      - payment_nm:/app/node_modules
+    command: npm run dev
+
+  notify-service:
+    build:
+      context: ./services/notify-service
+    ports:
+      - "3005:3005"
+    env_file:
+      - ./services/notify-service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - orderly-network
+    volumes:
+      - ./services/notify-service/src:/app/src
+      - notify_nm:/app/node_modules
+    command: npm run dev
+
+  catalog-service:
+    build:
+      context: ./services/catalog-service
+    ports:
+      - "3006:3006"
+    env_file:
+      - ./services/catalog-service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - orderly-network
+    volumes:
+      - ./services/catalog-service/src:/app/src
+      - catalog_nm:/app/node_modules
     command: sh -c "npx prisma migrate deploy && npm run dev"
 
 networks:
@@ -74,3 +131,8 @@ networks:
 
 volumes:
   postgres_data:
+  auth_nm:
+  order_nm:
+  payment_nm:
+  notify_nm:
+  catalog_nm:

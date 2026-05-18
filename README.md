@@ -11,6 +11,16 @@ Em Breve
 
 Em Breve 
 
+## Cartões de teste
+
+| Cartão              | Resultado        |
+|---------------------|------------------|
+| 4242 4242 4242 4242 | Sempre aprovado  |
+| 4000 0000 0000 0002 | Sempre recusado  |
+| 4000 0025 0000 3155 | Requer 3D Secure |
+
+Validade: qualquer data futura. CVC: qualquer 3 dígitos.
+
 ## 🛠 Stack
 
 - Node.js + TypeScript
@@ -32,3 +42,4 @@ docker-compose up --build
 | Payment | 3003  | Pagamentos       |
 | Stock   | 3004  | Estoque          |
 | Notify  | 3005  | E-mails          |
+| Catalog | 3006  | Produtos         |

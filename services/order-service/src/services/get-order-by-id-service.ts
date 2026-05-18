@@ -10,6 +10,9 @@ export class GetOrderByIdService {
       where: {
         id,
       },
+      include: {
+        items: true
+      }
     });
 
     return order;
