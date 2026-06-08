@@ -1,29 +1,85 @@
-import { prisma } from "../database/prisma";
 import { getRabbitChannel } from "./connection";
+import { publishEvent } from "./publisher";
+import { prisma } from "../database/prisma";
 
 export async function startOrderConsumer() {
   const channel = await getRabbitChannel();
 
-  await channel.assertQueue("order-update-queue", { durable: true });
+  await channel.assertQueue("order-payment-queue", { durable: true });
   await channel.bindQueue(
-    "order-update-queue",
+    "order-payment-queue",
     "orderly.events",
-    "payment.processed",
+    "payment.approved",
   );
 
-  channel.consume("order-update-queue", async (msg) => {
+  channel.prefetch(1);
+
+  console.log("Order Service aguardando payment.approved...");
+
+  channel.consume("order-payment-queue", async (msg) => {
     if (!msg) return;
 
-    const { data } = JSON.parse(msg.content.toString());
+    try {
+      const { data } = JSON.parse(msg.content.toString());
+      const { orderId, success } = data;
 
-    const status = data.success ? "CONFIRMED" : "CANCELLED";
+      if (!success) {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { status: "CANCELLED" },
+        });
 
-    await prisma.order.update({
-      where: { id: data.orderId },
-      data: { status },
-    });
+        console.log(`❌ Pedido cancelado: ${orderId}`);
+        channel.ack(msg);
+        return;
+      }
 
-    console.log(`Pedido ${data.orderId} atualizado para ${status}`);
-    channel.ack(msg);
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: true },
+      });
+
+      if (!order) {
+        console.error(`Pedido não encontrado: ${orderId}`);
+        channel.nack(msg, false, false);
+        return;
+      }
+
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { status: "CONFIRMED" },
+      });
+
+      await publishEvent("stock.process", {
+        orderId: order.id,
+        userId: order.userId,
+        transactionId: data.transactionId,
+        amount: data.amount,
+        items: order.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      });
+
+      await publishEvent("order.confirmed", {
+        orderId: order.id,
+        userId: order.userId,
+        userEmail: order.userEmail,
+        items: order.items.map((item) => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        total: order.total,
+        createdAt: order.createdAt,
+      });
+
+      console.log(`✅ Pedido confirmado: ${orderId}`);
+      channel.ack(msg);
+    } catch (err) {
+      console.error("Erro ao processar pagamento:", err);
+      channel.nack(msg, false, true);
+    }
   });
 }

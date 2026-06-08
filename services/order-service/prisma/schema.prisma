@@ -11,6 +11,7 @@ datasource db {
 model Order {
   id        String      @id @default(uuid())
   userId    String
+  userEmail String
   items     OrderItem[]
   status    OrderStatus
   total     Float
@@ -26,6 +27,7 @@ model OrderItem {
   productId   String
   productName String
   price       Float
+  imageUrl    String
   quantity    Int
 
   createdAt DateTime @default(now())

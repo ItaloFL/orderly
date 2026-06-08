@@ -4,17 +4,19 @@ import { publishEvent } from "../messaging/publisher";
 interface OrderItem {
   productId: string;
   productName: string;
+  imageUrl: string
   quantity: number;
   price: number;
 }
 
 interface CreateOrderDTO {
   userId: string;
+  userEmail: string;
   items: OrderItem[];
 }
 
 export class CreateOrderService {
-  async execute({ userId, items }: CreateOrderDTO) {
+  async execute({ userId, userEmail, items }: CreateOrderDTO) {
     const total = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0,
@@ -23,12 +25,14 @@ export class CreateOrderService {
     const order = await prisma.order.create({
       data: {
         userId,
+        userEmail, 
         total,
         status: "PENDING",
         items: {
           create: items.map((item) => ({
             productId: item.productId,
             productName: item.productName,
+            imageUrl: item.imageUrl,
             quantity: item.quantity,
             price: item.price,
           })),
@@ -40,6 +44,7 @@ export class CreateOrderService {
     await publishEvent("order.created", {
       orderId: order.id,
       userId: order.userId,
+      userEmail: order.userEmail,
       total: order.total,
       items: order.items,
     });
