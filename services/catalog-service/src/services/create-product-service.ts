@@ -23,15 +23,12 @@ export class CreateProductService {
         price,
         imageUrl,
         category,
-        stock,
       },
     });
 
     await publishEvent("product.created", {
       id: product.id,
-      name: product.name,
-      price: product.price,
-      stock: product.stock,
+      stock: Number(stock),
     });
 
     return product;
