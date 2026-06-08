@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import { startPasswordResetConsumer } from "./consumers/password-reset-consumer";
 import { AppError } from "./errors/AppError/AppError";
+import { startOrderConfirmationConsumer } from "./consumers/order-confirmation-consumer";
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(
 
 async function main() {
   await startPasswordResetConsumer();
+  await startOrderConfirmationConsumer();
   app.listen(3005, () => console.log("Notify Service rodando na porta 3003"));
 }
 
