@@ -23,7 +23,7 @@ export class AuthUserService {
     if (!passwordMatch) throw new AppError("Usuário ou senha incorretos");
 
     const token = jwt.sign(
-      { userId: userExists.id, role: userExists.role },
+      { userId: userExists.id, email: userExists.email, role: userExists.role },
       process.env.JWT_SECRET!,
       {
         expiresIn: "7d",
