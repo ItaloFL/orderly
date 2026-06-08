@@ -22,12 +22,18 @@ export class WebhookService {
       const { orderId } = session.metadata!;
       const success = session.payment_status === "paid";
 
-      await publishEvent("payment.processed", {
+      // Publica payment.approved (não payment.processed)
+      // Stock-service vai consumir isso
+      await publishEvent("payment.approved", {
         orderId,
         success,
         transactionId: session.payment_intent as string,
         amount: (session.amount_total ?? 0) / 100,
       });
+
+      console.log(
+        `✅ Webhook: pagamento ${success ? "aprovado" : "recusado"} para ${orderId}`,
+      );
     }
   }
 }
