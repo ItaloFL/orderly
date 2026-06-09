@@ -5,7 +5,7 @@
 
 ## 📐 Arquitetura
 
-![Fluxo de Eventos Assíncronos](./github/arquitetura.png)
+![Fluxo de Eventos Assíncronos](./docs/arquitetura.png)
 
 ## 🔄 Fluxo de eventos
 
