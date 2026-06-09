@@ -13,5 +13,4 @@ export async function publishEvent(routingKey: string, data: unknown) {
     persistent: true,
   });
 
-  console.log(`Evento publicado: ${routingKey}`);
 }

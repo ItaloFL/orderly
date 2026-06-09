@@ -18,6 +18,4 @@ export async function sendResetPasswordEmail(
     subject: "Redefinição de senha",
     html,
   });
-
-  console.log(`Email de reset enviado para ${email}`);
 }

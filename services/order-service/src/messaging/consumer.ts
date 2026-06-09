@@ -14,7 +14,6 @@ export async function startOrderConsumer() {
 
   channel.prefetch(1);
 
-  console.log("Order Service aguardando payment.approved...");
 
   channel.consume("order-payment-queue", async (msg) => {
     if (!msg) return;
@@ -29,7 +28,6 @@ export async function startOrderConsumer() {
           data: { status: "CANCELLED" },
         });
 
-        console.log(`❌ Pedido cancelado: ${orderId}`);
         channel.ack(msg);
         return;
       }
@@ -75,7 +73,6 @@ export async function startOrderConsumer() {
         createdAt: order.createdAt,
       });
 
-      console.log(`✅ Pedido confirmado: ${orderId}`);
       channel.ack(msg);
     } catch (err) {
       console.error("Erro ao processar pagamento:", err);

@@ -24,6 +24,4 @@ export async function sendOrderConfirmationEmail(
     subject: `Compra Confirmada - Pedido #${orderId}`,
     html,
   });
-
-  console.log(`✅ Email de confirmação enviado para ${email}`);
 }

@@ -29,7 +29,6 @@ export function Cart() {
         })),
       });
 
-      console.log(order);
 
       const { data } = await orderService.createCheckout(order.id, {
         userId: order.userId,

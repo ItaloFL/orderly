@@ -29,7 +29,6 @@ export async function startConsumer() {
         },
       });
 
-      console.log(`📦 Estoque criado: ${data.id} (${data.stock} un.)`);
       channel.ack(msg);
     } catch (err) {
       console.error("Erro ao criar estoque:", err);
@@ -56,7 +55,6 @@ export async function startConsumer() {
         return;
       }
 
-      console.log(`💳 Processando estoque para pedido ${data.orderId}...`);
 
       const updatePromises = data.items.map((item: any) =>
         prisma.stockItem.update({
@@ -69,7 +67,6 @@ export async function startConsumer() {
 
       await publishEvent("stock.updated", { orderId: data.orderId });
 
-      console.log(`✅ Estoque atualizado: ${data.orderId}`);
       channel.ack(msg);
     } catch (err) {
       console.error("Erro ao atualizar estoque:", err);

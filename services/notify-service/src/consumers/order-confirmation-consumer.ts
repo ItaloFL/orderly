@@ -27,8 +27,6 @@ export async function startOrderConfirmationConsumer() {
 
   channel.prefetch(1);
 
-  console.log("📧 Notify Service aguardando order.confirmed...");
-
   channel.consume("notify-order-confirmed-queue", async (msg) => {
     if (!msg) return;
 
@@ -50,8 +48,6 @@ export async function startOrderConfirmationConsumer() {
         data.total,
         data.createdAt,
       );
-
-      console.log(data)
 
       channel.ack(msg);
     } catch (err) {

@@ -16,19 +16,16 @@ export default defineConfig({
         target: "http://localhost:3001",
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api\/auth/, ""),
-        // /api/auth/login → /login
       },
       "/api/orders": {
         target: "http://localhost:3002",
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api/, ""),
-        // /api/orders → /orders ✓
       },
       "/api/products": {
         target: "http://localhost:3006",
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api\/products/, ""),
-        // /api/products/product → /product ✓
       },
     },
   },

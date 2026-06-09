@@ -17,7 +17,6 @@ app.use(express.json());
 app.post("/payments", new ProcessPaymentController().handle);
 
 async function main() {
-  console.log("Payment Service iniciando...");
   await startConsumer();
   app.listen(PORT, () => {
     console.log(`Payment Service rodando na porta ${PORT}`);
