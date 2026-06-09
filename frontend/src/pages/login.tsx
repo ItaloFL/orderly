@@ -36,8 +36,6 @@ export function Login() {
     },
   });
 
-  console.log(error);
-
   function onSubmit(data: LoginFormType) {
     mutate(data);
   }

@@ -22,7 +22,7 @@ export function useProducts() {
     queryKey: ["products"],
     queryFn: async () => {
       const { data } = await catalogService.list();
-      return data as Product[];
+      return (data || []) as Product[];
     },
   });
 
@@ -32,7 +32,9 @@ export function useProducts() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+      }, 500);
     },
   });
 
@@ -87,6 +89,7 @@ export function Products() {
         title="Cardápio"
         subtitle="Escolha seus itens favoritos e monte seu pedido."
       >
+        {/* Header / Filtros */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {categories.map((cat, index) => (
@@ -108,7 +111,7 @@ export function Products() {
           {isAdmin && (
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-[#090d0b] px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] animate-in zoom-in duration-500 whitespace-nowrap shrink-0"
+              className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 cursor-pointer text-[#090d0b] px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] animate-in zoom-in duration-500 whitespace-nowrap shrink-0"
             >
               <Plus size={18} strokeWidth={3} />
               Novo Produto
@@ -116,6 +119,7 @@ export function Products() {
           )}
         </div>
 
+        {/* Listagem de Produtos */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 text-emerald-500">
             <Loader2 className="size-10 animate-spin mb-4" />
@@ -132,37 +136,88 @@ export function Products() {
                 <div
                   key={product.id}
                   style={{ animationDelay: `${100 + index * 50}ms` }}
-                  className="animate-in fade-in slide-in-from-bottom-5 duration-700 fill-mode-backwards group relative rounded-2xl border border-white/[0.06] bg-[#0d130f]/90 backdrop-blur-xl overflow-hidden hover:border-emerald-500/30 transition-all shadow-[0_16px_32px_-12px_rgba(0,0,0,0.5)]"
+                  className="animate-in fade-in slide-in-from-bottom-5 duration-700 fill-mode-backwards group relative flex flex-col rounded-2xl border border-white/[0.06] bg-[#0d130f]/90 backdrop-blur-xl overflow-hidden hover:border-emerald-500/30 transition-all duration-300 shadow-[0_16px_32px_-12px_rgba(0,0,0,0.6)]"
                 >
-                  <div className="relative h-48 overflow-hidden bg-white/5">
+                  {/* Container da Imagem Premium (Tratamento para fundo branco de e-commerce) */}
+                  <div className="relative aspect-[4/3] w-full bg-white p-6 flex items-center justify-center overflow-hidden border-b border-white/[0.04]">
                     <img
                       src={product.imageUrl}
                       alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
                     />
+
+                    {/* Badge: Sem Estoque */}
                     {product.stock === 0 && (
-                      <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
-                        <span className="bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
+                      <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px] flex items-center justify-center p-4">
+                        <span className="bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-center">
                           Sem estoque
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Badge: Últimas Unidades */}
+                    {product.stock > 0 && product.stock <= 5 && (
+                      <div className="absolute top-3 right-3">
+                        <span className="bg-amber-500 text-neutral-900 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider shadow-md">
+                          Só {product.stock} un!
                         </span>
                       </div>
                     )}
                   </div>
 
-                  <div className="p-5">
-                    <span className="text-[10px] uppercase tracking-widest text-emerald-500/60 font-bold">
-                      {product.category}
-                    </span>
-                    <h3 className="text-lg font-medium text-white mt-1 truncate">
-                      {product.name}
-                    </h3>
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-xl font-bold text-white">
-                        {product.price.toLocaleString("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        })}
+                  {/* Corpo do Card (Sem alturas estáticas/engessadas) */}
+                  <div className="p-5 flex flex-col flex-1 justify-between gap-5">
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold opacity-80">
+                        {product.category}
                       </span>
+                      <h3 className="text-lg font-semibold text-white tracking-tight leading-snug line-clamp-2 group-hover:text-emerald-400 transition-colors">
+                        {product.name}
+                      </h3>
+
+                      {/* Status do Estoque */}
+                      <div className="pt-1 flex items-center gap-2">
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                            product.stock === 0
+                              ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]"
+                              : product.stock <= 5
+                                ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)]"
+                                : "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]"
+                          }`}
+                        />
+                        <span
+                          className={`text-xs font-medium ${
+                            product.stock === 0
+                              ? "text-red-400/60"
+                              : product.stock <= 5
+                                ? "text-amber-400/80"
+                                : "text-white/40"
+                          }`}
+                        >
+                          {product.stock === 0
+                            ? "Esgotado"
+                            : product.stock === 1
+                              ? "Apenas 1 restante"
+                              : `${product.stock} disponíveis`}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Footer: Alinhamento Perfeito de Preço e Botão */}
+                    <div className="flex items-center justify-between pt-3 border-t border-white/[0.04]">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase tracking-wider text-white/30 font-medium">
+                          Preço
+                        </span>
+                        <span className="text-xl font-extrabold text-white tracking-tight">
+                          {product.price.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </span>
+                      </div>
+
                       <button
                         disabled={product.stock === 0}
                         onClick={() =>
@@ -174,9 +229,9 @@ export function Products() {
                             quantity: 1,
                           })
                         }
-                        className="p-2.5 rounded-xl bg-emerald-500 text-[#090d0b] hover:bg-emerald-400 disabled:opacity-20 disabled:grayscale transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                        className="flex items-center justify-center p-3 rounded-xl bg-emerald-500 text-[#090d0b] hover:bg-emerald-400 disabled:opacity-10 disabled:pointer-events-none transition-all duration-200 shadow-md active:scale-95 cursor-pointer"
                       >
-                        <Plus size={20} />
+                        <Plus size={18} strokeWidth={2.5} />
                       </button>
                     </div>
                   </div>

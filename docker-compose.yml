@@ -106,6 +106,24 @@ services:
       - notify_nm:/app/node_modules
     command: npm run dev
 
+  stock-service:
+    build:
+      context: ./services/stock-service
+    ports:
+      - "3004:3004"
+    env_file:
+      - ./services/stock-service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - orderly-network
+    volumes:
+      - ./services/stock-service/src:/app/src
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+
   catalog-service:
     build:
       context: ./services/catalog-service
@@ -123,7 +141,7 @@ services:
     volumes:
       - ./services/catalog-service/src:/app/src
       - catalog_nm:/app/node_modules
-    command: sh -c "npx prisma migrate deploy && npm run dev"
+    command: sh -c "npm install && npx prisma migrate deploy && npm run dev"
 
 networks:
   orderly-network:

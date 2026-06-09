@@ -48,6 +48,7 @@ export function CreateOrder() {
       items: items.map((i) => ({
         productId: i.productId,
         productName: i.name,
+        imageUrl: i.imageUrl,
         price: i.price,
         quantity: i.quantity,
       })),
@@ -106,7 +107,6 @@ export function CreateOrder() {
                   </div>
                 )}
 
-                {/* Seletor de Produtos — API real */}
                 <div className="relative">
                   <button
                     onClick={() => setCatalogOpen(!catalogOpen)}
@@ -174,7 +174,6 @@ export function CreateOrder() {
                   )}
                 </div>
 
-                {/* Itens */}
                 <div className="space-y-3">
                   {items.length === 0 ? (
                     <div className="py-10 border-2 border-dashed border-white/5 rounded-2xl text-center">

@@ -14,6 +14,7 @@ import { Cart } from "./pages/cart";
 import { Orders } from "./pages/orders";
 import { DashboardLayout } from "./components/dashboard-layout";
 import { OrderDetail } from "./pages/order-detail";
+import { Dashboard } from "./pages/dashboard";
 
 export function App() {
   return (
@@ -26,6 +27,7 @@ export function App() {
 
       <Route element={<AuthGuard />}>
         <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/orders" element={<Orders />} />

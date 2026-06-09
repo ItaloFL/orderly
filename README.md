@@ -5,11 +5,13 @@
 
 ## 📐 Arquitetura
 
-Em Breve
+![Fluxo de Eventos Assíncronos](./github/arquitetura.png)
 
 ## 🔄 Fluxo de eventos
 
-Em Breve 
+1. **Catálogo & Estoque**: Quando um novo produto é criado no serviço `Catalog`, o evento `product.created` é disparado para que o serviço `Stock` crie o registro correspondente.
+2. **Fluxo de Pedidos**: Ao finalizar um carrinho, `Orders` publica `order.created`. O microsserviço `Notify` escuta esse evento e dispara o e-mail de confirmação inicial.
+3. **Pagamento & Baixa**: O webhook do Stripe bate em `Payment`, que valida e propaga `payment.approved`. O serviço `Orders` intercepta, altera o status para pago e aciona o `Stock` para decrementar as unidades vendidas
 
 ## Cartões de teste
 
@@ -28,10 +30,7 @@ Validade: qualquer data futura. CVC: qualquer 3 dígitos.
 - PostgreSQL
 - Docker + Nginx
 - React + Tailwind
-
-## 🚀 Como rodar
-
-docker-compose up --build
+- Resend
 
 ## 📡 Serviços
 
@@ -43,3 +42,12 @@ docker-compose up --build
 | Stock   | 3004  | Estoque          |
 | Notify  | 3005  | E-mails          |
 | Catalog | 3006  | Produtos         |
+
+## Developer
+
+Ítalo Ferreira Lopes
+
+- 💻 - [Github](https://github.com/ItaloFL)
+- 📒 - [Linkedin](https://www.linkedin.com/in/italo-ferreira-dev/)
+
+Feito com 💜

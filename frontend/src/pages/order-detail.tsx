@@ -1,23 +1,16 @@
-import { useEffect } from "react";
-import {
-  useParams,
-  useSearchParams,
-  useNavigate,
-  Link,
-} from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   CheckCircle2,
   XCircle,
+  Clock,
   ArrowLeft,
   ShoppingBag,
-  Clock,
   Package,
   CreditCard,
   Loader2,
 } from "lucide-react";
 import { orderService } from "@/lib/order-service";
-import { PageWrapper } from "@/components/page-wrapper";
 
 interface OrderItem {
   id: string;
@@ -40,19 +33,19 @@ const STATUS_MAP = {
     label: "Confirmado",
     color: "text-emerald-400",
     bg: "bg-emerald-400/10 border-emerald-400/20",
-    icon: <CheckCircle2 size={14} />,
+    icon: CheckCircle2,
   },
   PENDING: {
-    label: "Pendente",
+    label: "Aguardando Pagamento",
     color: "text-amber-400",
     bg: "bg-amber-400/10 border-amber-400/20",
-    icon: <Clock size={14} />,
+    icon: Clock,
   },
   CANCELLED: {
     label: "Cancelado",
     color: "text-red-400",
     bg: "bg-red-400/10 border-red-400/20",
-    icon: <XCircle size={14} />,
+    icon: XCircle,
   },
 } as const;
 
@@ -70,9 +63,7 @@ const formatDate = (date: string) =>
 
 export function OrderDetail() {
   const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const payment = searchParams.get("payment"); // "success" | "cancelled" | null
 
   const {
     data: order,
@@ -86,29 +77,23 @@ export function OrderDetail() {
     },
     enabled: !!id,
     refetchInterval: (query) => {
-      // Acessa os dados via query.state.data
       const currentOrder = query.state.data as Order | undefined;
-      return payment === "success" && currentOrder?.status === "PENDING"
-        ? 2000
-        : false;
+      return currentOrder?.status === "PENDING" ? 3000 : false;
     },
   });
 
-  console.log(order)
-
-  // Loading
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#090d0b] flex items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-emerald-500" />
+        <Loader2 size={32} className="animate-spin text-emerald-500" />
       </div>
     );
   }
 
-  // Error
   if (isError || !order) {
     return (
       <div className="min-h-screen bg-[#090d0b] flex flex-col items-center justify-center gap-4">
+        <Package size={48} className="text-white/10" />
         <p className="text-white/40">Pedido não encontrado.</p>
         <button
           onClick={() => navigate("/orders")}
@@ -121,17 +106,15 @@ export function OrderDetail() {
   }
 
   const status = STATUS_MAP[order.status];
-  const isCancelled = payment === "cancelled" || order.status === "CANCELLED";
-  const isSuccess = payment === "success" || order.status === "CONFIRMED";
+  const StatusIcon = status.icon;
 
   return (
     <div className="relative min-h-screen bg-[#090d0b]">
-      {/* Background */}
       <div
         className="pointer-events-none fixed inset-0"
         style={{
           backgroundImage: [
-            isCancelled
+            order.status === "CANCELLED"
               ? "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(239,68,68,0.06) 0%, transparent 100%)"
               : "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(16,185,129,0.07) 0%, transparent 100%)",
             "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)",
@@ -141,119 +124,141 @@ export function OrderDetail() {
       />
 
       <div className="relative mx-auto max-w-2xl px-4 py-12">
-        {/* Back */}
         <Link
           to="/orders"
-          className="inline-flex items-center gap-2 text-sm text-white/30 hover:text-white/60 transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors mb-8 animate-in fade-in slide-in-from-left-4 duration-500"
         >
           <ArrowLeft size={15} />
           Meus pedidos
         </Link>
 
-        {/* Banner de status do pagamento */}
-        {(isSuccess || isCancelled) && (
-          <div
-            className={`animate-in fade-in slide-in-from-top-4 duration-500 mb-6 rounded-2xl border p-6 flex flex-col items-center text-center gap-3 ${
-              isCancelled
-                ? "border-red-500/20 bg-red-500/[0.06]"
-                : "border-emerald-500/20 bg-emerald-500/[0.06]"
-            }`}
-          >
-            <div
-              className={`w-14 h-14 rounded-full flex items-center justify-center ${
-                isCancelled ? "bg-red-500/10" : "bg-emerald-500/10"
-              }`}
-            >
-              {isCancelled ? (
-                <XCircle size={28} className="text-red-400" />
-              ) : (
-                <CheckCircle2 size={28} className="text-emerald-400" />
-              )}
-            </div>
-            <div>
-              <h2
-                className={`text-lg font-bold ${isCancelled ? "text-red-400" : "text-emerald-400"}`}
-              >
-                {isCancelled ? "Pagamento cancelado" : "Pagamento confirmado!"}
-              </h2>
-              <p className="text-sm text-white/40 mt-1">
-                {isCancelled
-                  ? "Seu pagamento foi cancelado. Nenhuma cobrança foi realizada."
-                  : "Seu pedido foi confirmado e está sendo processado."}
-              </p>
-            </div>
-            {isCancelled && (
-              <Link
-                to="/cart"
-                className="mt-1 px-5 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/70 hover:bg-white/10 transition-all"
-              >
-                Voltar ao carrinho
-              </Link>
-            )}
-          </div>
-        )}
-
-        {/* Card principal */}
-        <div className="rounded-2xl border border-white/[0.06] bg-[#0d130f]/90 backdrop-blur-xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.7)] overflow-hidden">
-          {/* Header */}
+        <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 rounded-2xl border border-white/[0.06] bg-[#0d130f]/90 backdrop-blur-xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.7)] overflow-hidden">
           <div className="px-6 py-5 border-b border-white/[0.06] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-                <Package size={16} className="text-white/40" />
+              <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+                <Package size={18} className="text-white/40" />
               </div>
               <div>
                 <p className="text-[11px] text-white/30 uppercase tracking-widest">
                   Pedido
                 </p>
                 <p className="font-mono text-sm text-emerald-500/80">
-                  {order.id}
+                  #{order.id}
                 </p>
               </div>
             </div>
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium border ${status.bg} ${status.color}`}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium border ${status.bg} ${status.color}`}
             >
-              {status.icon}
+              <StatusIcon size={14} />
               {status.label}
             </span>
           </div>
 
-          {/* Info */}
+          <div className="px-6 py-6 border-b border-white/[0.06]">
+            <p className="text-[11px] text-white/30 uppercase tracking-widest mb-4">
+              Status do Pedido
+            </p>
+            <div className="flex items-center justify-between relative">
+              <div className="absolute left-0 right-0 top-5 h-0.5 bg-white/[0.06]">
+                <div
+                  className={`h-full transition-all duration-500 ${
+                    order.status === "CONFIRMED"
+                      ? "w-full bg-emerald-500/50"
+                      : order.status === "CANCELLED"
+                        ? "w-1/2 bg-red-500/50"
+                        : "w-1/3 bg-amber-500/50"
+                  }`}
+                />
+              </div>
+
+              <div className="relative flex flex-col items-center gap-2 z-10">
+                <div className="w-10 h-10 rounded-full border-2 border-emerald-500/50 bg-[#0d130f] flex items-center justify-center">
+                  <CheckCircle2 size={18} className="text-emerald-500" />
+                </div>
+                <span className="text-[10px] text-white/40 uppercase tracking-wider">
+                  Criado
+                </span>
+              </div>
+
+              <div className="relative flex flex-col items-center gap-2 z-10">
+                <div
+                  className={`w-10 h-10 rounded-full border-2 bg-[#0d130f] flex items-center justify-center transition-all ${
+                    order.status === "PENDING"
+                      ? "border-amber-500/50 animate-pulse"
+                      : order.status === "CONFIRMED"
+                        ? "border-emerald-500/50"
+                        : "border-red-500/50"
+                  }`}
+                >
+                  {order.status === "PENDING" ? (
+                    <Clock size={18} className="text-amber-400" />
+                  ) : order.status === "CONFIRMED" ? (
+                    <CreditCard size={18} className="text-emerald-500" />
+                  ) : (
+                    <XCircle size={18} className="text-red-400" />
+                  )}
+                </div>
+                <span className="text-[10px] text-white/40 uppercase tracking-wider">
+                  Pagamento
+                </span>
+              </div>
+
+              <div className="relative flex flex-col items-center gap-2 z-10">
+                <div
+                  className={`w-10 h-10 rounded-full border-2 bg-[#0d130f] flex items-center justify-center ${
+                    order.status === "CONFIRMED"
+                      ? "border-emerald-500/50"
+                      : "border-white/[0.06]"
+                  }`}
+                >
+                  {order.status === "CONFIRMED" ? (
+                    <CheckCircle2 size={18} className="text-emerald-500" />
+                  ) : (
+                    <Package size={18} className="text-white/20" />
+                  )}
+                </div>
+                <span className="text-[10px] text-white/40 uppercase tracking-wider">
+                  Confirmado
+                </span>
+              </div>
+            </div>
+          </div>
+
           <div className="px-6 py-4 border-b border-white/[0.06] grid grid-cols-2 gap-4">
             <div>
-              <p className="text-[11px] text-white/30 uppercase tracking-widest mb-1">
-                Data
+              <p className="text-[11px] text-white/30 uppercase tracking-widest mb-1.5">
+                Data do Pedido
               </p>
               <p className="text-sm text-white/70">
                 {formatDate(order.createdAt)}
               </p>
             </div>
             <div>
-              <p className="text-[11px] text-white/30 uppercase tracking-widest mb-1">
-                Pagamento
+              <p className="text-[11px] text-white/30 uppercase tracking-widest mb-1.5">
+                Método de Pagamento
               </p>
-              <div className="flex items-center gap-1.5 text-sm text-white/70">
-                <CreditCard size={13} className="text-white/30" />
-                Stripe Checkout
+              <div className="flex items-center gap-2 text-sm text-white/70">
+                <CreditCard size={14} className="text-white/30" />
+                Stripe Sandbox
               </div>
             </div>
           </div>
 
-          {/* Itens */}
-          <div className="px-6 py-4">
+          <div className="px-6 py-5">
             <p className="text-[11px] text-white/30 uppercase tracking-widest mb-4">
-              Itens do pedido
+              Itens do Pedido
             </p>
             <div className="space-y-3">
               {order.items.map((item, index) => (
                 <div
                   key={item.id}
                   style={{ animationDelay: `${index * 80}ms` }}
-                  className="animate-in fade-in slide-in-from-left-2 duration-400 fill-mode-backwards flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0"
+                  className="animate-in fade-in slide-in-from-left-3 duration-400 fill-mode-backwards flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-                      <ShoppingBag size={13} className="text-white/30" />
+                    <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+                      <ShoppingBag size={14} className="text-white/30" />
                     </div>
                     <div>
                       <p className="text-sm text-white/80 font-medium">
@@ -277,17 +282,17 @@ export function OrderDetail() {
             </div>
           </div>
 
-          {/* Total */}
           <div className="px-6 py-5 bg-white/[0.02] border-t border-white/[0.06] flex items-center justify-between">
-            <span className="text-sm text-white/50">Total</span>
-            <span className="text-xl font-bold text-emerald-400">
+            <span className="text-sm text-white/50 uppercase tracking-wider">
+              Total
+            </span>
+            <span className="text-2xl font-bold text-emerald-400">
               {formatCurrency(order.total)}
             </span>
           </div>
         </div>
 
-        {/* Ações */}
-        <div className="mt-4 flex gap-3">
+        <div className="mt-6 flex gap-3 animate-in fade-in duration-700 delay-300">
           <Link
             to="/products"
             className="flex-1 py-3 rounded-xl border border-white/[0.06] bg-white/[0.02] text-center text-sm text-white/50 hover:bg-white/[0.05] hover:text-white/80 transition-all"
@@ -296,7 +301,7 @@ export function OrderDetail() {
           </Link>
           <Link
             to="/orders"
-            className="flex-1 py-3 rounded-xl bg-emerald-500 text-center text-sm font-bold text-[#090d0b] hover:bg-emerald-400 transition-all"
+            className="flex-1 py-3 rounded-xl bg-emerald-500 text-center text-sm font-bold text-[#090d0b] hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
           >
             Meus pedidos
           </Link>

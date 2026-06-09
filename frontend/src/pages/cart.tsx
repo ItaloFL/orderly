@@ -23,17 +23,18 @@ export function Cart() {
         items: items.map((item) => ({
           productId: item.productId,
           productName: item.name,
+          imageUrl: item.imageUrl,
           quantity: item.quantity,
           price: item.price,
         })),
       });
 
+      console.log(order);
+
       const { data } = await orderService.createCheckout(order.id, {
         userId: order.userId,
         total,
       });
-
-      console.log(data.checkoutUrl);
 
       return data.checkoutUrl;
     },

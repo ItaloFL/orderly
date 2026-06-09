@@ -18,6 +18,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Link } from "react-router-dom";
 
 interface Order {
   id: string;
@@ -173,6 +174,10 @@ export function Orders() {
                     className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-backwards hover:bg-white/[0.03] transition-colors cursor-pointer group"
                   >
                     <td className="px-6 py-5 font-mono text-sm text-emerald-500/80">
+                      <Link
+                        to={`/orders/${order.id}`}
+                        className="font-mono text-sm text-emerald-500/80 hover:text-emerald-400"
+                      ></Link>
                       {order.id}
                     </td>
                     <td className="px-6 py-5 text-sm text-white/60">
@@ -190,10 +195,12 @@ export function Orders() {
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right text-white/20 group-hover:text-emerald-500 transition-colors">
-                      <ChevronRight
-                        size={18}
-                        className="ml-auto group-hover:translate-x-1 transition-transform"
-                      />
+                      <Link to={`/orders/${order.id}`} className="block">
+                        <ChevronRight
+                          size={18}
+                          className="ml-auto group-hover:translate-x-1 transition-transform"
+                        />
+                      </Link>
                     </td>
                   </tr>
                 );
