@@ -7,6 +7,10 @@
 
 ![Fluxo de Eventos Assíncronos](./docs/arquitetura.png)
 
+# 🎉 Preview in the Web
+
+https://github.com/user-attachments/assets/7400afcd-1be6-4f93-9d73-ce57343d350a
+
 ## 🔄 Fluxo de eventos
 
 1. **Catálogo & Estoque**: Quando um novo produto é criado no serviço `Catalog`, o evento `product.created` é disparado para que o serviço `Stock` crie o registro correspondente.
